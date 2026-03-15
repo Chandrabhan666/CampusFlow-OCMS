@@ -130,15 +130,26 @@ SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 USE_X_FORWARDED_HOST = True
 USE_X_FORWARDED_PORT = True
 
-# Redis is required by the OCMS blueprint for course and dashboard caching.
-try:
-    import redis  # noqa: F401
+# Cache: use Redis only when REDIS_URL is set and not localhost (Vercel has no local Redis).
+# On Vercel (VERCEL=1), never use 127.0.0.1 so the app works without Redis.
+REDIS_URL = os.getenv("REDIS_URL")
+_ON_VERCEL = os.getenv("VERCEL") == "1"
 
-    _cache_backend = "django.core.cache.backends.redis.RedisCache"
-    _cache_location = os.getenv("REDIS_URL", "redis://127.0.0.1:6379/1")
-except ImportError:
-    _cache_backend = "django.core.cache.backends.locmem.LocMemCache"
-    _cache_location = "ocms-fallback-cache"
+_cache_backend = "django.core.cache.backends.locmem.LocMemCache"
+_cache_location = "ocms-fallback-cache"
+
+_use_redis = bool(REDIS_URL)
+if _use_redis and _ON_VERCEL and ("127.0.0.1" in REDIS_URL or "localhost" in REDIS_URL):
+    _use_redis = False  # Never use localhost Redis on Vercel
+
+if _use_redis:
+    try:
+        import redis  # noqa: F401
+    except ImportError:
+        _use_redis = False
+    else:
+        _cache_backend = "django.core.cache.backends.redis.RedisCache"
+        _cache_location = REDIS_URL
 
 CACHES = {
     "default": {
