@@ -6,8 +6,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "dev-only-secret-key")
 DEBUG = os.getenv("DJANGO_DEBUG", "True").lower() == "true"
-ALLOWED_HOSTS = [host for host in os.getenv("DJANGO_ALLOWED_HOSTS", "127.0.0.1,localhost").split(",") if host]
-
+ALLOWED_HOSTS = ['127.0.0.1', 'localhost', 'smart-attendance-7bjr.vercel.app', 'smart-attendance-7bjr-lei75lla3-chandrabhan666s-projects.vercel.app']
 INSTALLED_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",
